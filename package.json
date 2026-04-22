@@ -1,0 +1,29 @@
+{
+  "name": "node-hermes-agent",
+  "displayName": "Node Hermes Agent",
+  "description": "node 版本的 Hermes Agent 实现",
+  "version": "1.0.0",
+  "publisher": "dwqs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dwqs/node-hermes-agent.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "node",
+    "hermes",
+    "agent",
+    "hermes agent",
+    "ts",
+    "js"
+  ],
+  "scripts": {},
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "openai": "^6.34.0"
+  }
+}
