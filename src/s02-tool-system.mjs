@@ -144,10 +144,6 @@ async function runConversation(input) {
 
     console.log(chalk.bgBlue(`🔍 工具调用: ${response.tool_calls.map(t => t.name).join(', ')}`));
     for (const toolCall of response.tool_calls) {
-      const foundTool = tools.find(t => t.name === toolCall.name);
-      if (!foundTool) {
-        continue;
-      }
       console.log(chalk.green(`🔍 工具调用: ${toolCall.name} - 参数: ${JSON.stringify(toolCall.args)}`));
       const toolResult = await toolRegistry.dispatch(toolCall.name, toolCall.args);
       messages.push(new ToolMessage({ content: toolResult, tool_call_id: toolCall.id }));
