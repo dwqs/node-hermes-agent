@@ -146,7 +146,7 @@ async function runConversation(input) {
     for (const toolCall of response.tool_calls) {
       console.log(chalk.green(`🔍 工具调用: ${toolCall.name} - 参数: ${JSON.stringify(toolCall.args)}`));
       const toolResult = await toolRegistry.dispatch(toolCall.name, toolCall.args);
-      messages.push(new ToolMessage({ content: toolResult, tool_call_id: toolCall.id }));
+      messages.push(new ToolMessage({ content: toolResult, tool_call_id: toolCall.id, name: toolCall.name }));
     }
   }
 
