@@ -5,12 +5,7 @@ import { execSync } from 'child_process'
 import readline from 'readline/promises'
 import chalk from 'chalk'
 
-import { model } from './common.mjs'
-
-const MAX_ITERATIONS = parseInt(process.env.MAX_ITERATIONS) || 30
-const TOOL_TIMEOUT = 30000
-
-const BLOCKED_COMMANDS = ['rm -rf /', 'mkfs', 'dd if=', 'shutdown', 'reboot']
+import { model, MAX_ITERATIONS, TOOL_TIMEOUT, BLOCKED_COMMANDS } from './common.mjs'
 
 const shellTool = tool(
   ({ command }) => {

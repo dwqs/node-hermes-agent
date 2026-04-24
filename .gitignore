@@ -142,3 +142,4 @@ vite.config.ts.timestamp-*
 .claude
 .pnpm-store
 .cursor
+src/test
