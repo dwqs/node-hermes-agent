@@ -16,4 +16,9 @@ pnpm i
 OPEN_AI_API_KEY=your api key
 MODEL_BASE_URL=base url
 AI_MODEL_NAME=model name
+MAX_ITERATIONS=30
 ```
+
+### 脚本功能
+1. `s01-agent-loop`: 实现 Agent 多轮对话
+2. `s02-tool-system`: 实现 Agent 的工具系统 
