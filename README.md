@@ -10,13 +10,14 @@ cd node-hermes-agent
 pnpm i
 ```
 
-创建 `.env` 文件：
+在根目录下创建 `.env` 文件：
 
 ```
 OPEN_AI_API_KEY=your api key
 MODEL_BASE_URL=base url
 AI_MODEL_NAME=model name
 MAX_ITERATIONS=30
+DB_PATH=state.db
 ```
 
 ### 脚本功能

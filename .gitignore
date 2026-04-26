@@ -143,3 +143,6 @@ vite.config.ts.timestamp-*
 .pnpm-store
 .cursor
 src/test
+state.db
+state.db-shm
+state.db-wal
