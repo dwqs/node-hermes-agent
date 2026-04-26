@@ -18,6 +18,7 @@ MODEL_BASE_URL=base url
 AI_MODEL_NAME=model name
 MAX_ITERATIONS=30
 DB_PATH=state.db
+HERMES_HOME=./.hermes
 ```
 
 ### 脚本功能
