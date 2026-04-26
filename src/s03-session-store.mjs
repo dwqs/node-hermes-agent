@@ -256,11 +256,7 @@ async function main() {
 
     if(str.startsWith('/search'))  {
       const results = searchSessions(db, str.slice(8))
-      console.log('results', results)
-      // for (const row of results) {
-      //   console.log(`  [${row.sessionId.slice(0, 8)}] ${row.snippet}`)
-      // }
-      console.log()
+      console.log('results', results, '\n')
       continue
     }
     await runConversation(input.trim(), db, sessionId)
