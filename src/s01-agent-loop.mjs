@@ -1,36 +1,9 @@
-import { tool } from '@langchain/core/tools'
 import { SystemMessage, HumanMessage, ToolMessage } from '@langchain/core/messages'
-import { z } from 'zod'
-import { execSync } from 'child_process'
 import readline from 'readline/promises'
 import chalk from 'chalk'
 
-import { model, MAX_ITERATIONS, TOOL_TIMEOUT, BLOCKED_COMMANDS } from './common.mjs'
-
-const shellTool = tool(
-  ({ command }) => {
-    for (const blocked of BLOCKED_COMMANDS) {
-      if (command.includes(blocked)) {
-        return JSON.stringify({ error: `Blocked: ${blocked}` })
-      }
-    }
-    try {
-      const output = execSync(command, { encoding: 'utf-8', timeout: TOOL_TIMEOUT })
-      return output.slice(0, 1000) || '(no output)'
-    } catch (err) {
-      if (err.killed) {
-        return '(command timed out after 30s)'
-      }
-      const output = (err.stdout || '') + (err.stderr || '')
-      return output.slice(0, 1000) || `(error: ${err.message})`
-    }
-  },
-  {
-    name: 'shell_tool',
-    description: '执行 shell 命令并返回输出结果',
-    schema: z.object({ command: z.string().describe('执行 shell 命令并返回输出结果') })
-  }
-)
+import { model, MAX_ITERATIONS } from './common.mjs'
+import { shellTool } from './tools.mjs'
 
 const messages = [new SystemMessage('你是一个能执行终端命令的 AI 助手')]
 const tools = [shellTool]

@@ -11,8 +11,4 @@ export const model = new ChatOpenAI({
       baseURL: process.env.MODEL_BASE_URL,
   },
 })
-
 export const MAX_ITERATIONS = 30
-export const TOOL_TIMEOUT = 30000
-export const BLOCKED_COMMANDS = ['rm -rf /', 'mkfs', 'dd if=', 'shutdown', 'reboot']
-export const ENABLED_TOOLSETS = ["terminal", "file", "web"]
