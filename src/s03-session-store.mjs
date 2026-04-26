@@ -2,9 +2,9 @@ import { SystemMessage, HumanMessage, ToolMessage } from '@langchain/core/messag
 import readline from 'readline/promises'
 import chalk from 'chalk'
 
-import { model, MAX_ITERATIONS } from './common.mjs'
-import { toolRegistry } from './tools.mjs'
-import { initDB, createSession, searchSessions, getSessionMessages, addMessage } from './persistent.mjs'
+import { model, MAX_ITERATIONS } from './common/model.mjs'
+import { toolRegistry } from './common/tools.mjs'
+import { initDB, createSession, searchSessions, getSessionMessages, addMessage } from './common/persistent.mjs'
 
 const tools = toolRegistry.getDefinitions()
 const modelWithTools = model.bindTools(tools)

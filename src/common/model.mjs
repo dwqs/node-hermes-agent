@@ -11,4 +11,4 @@ export const model = new ChatOpenAI({
       baseURL: process.env.MODEL_BASE_URL,
   },
 })
-export const MAX_ITERATIONS = 30
+export const MAX_ITERATIONS = process.env.MAX_ITERATIONS || 30

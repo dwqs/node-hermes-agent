@@ -2,8 +2,8 @@ import { SystemMessage, HumanMessage, ToolMessage } from '@langchain/core/messag
 import readline from 'readline/promises'
 import chalk from 'chalk'
 
-import { model, MAX_ITERATIONS } from './common.mjs'
-import { shellTool } from './tools.mjs'
+import { model, MAX_ITERATIONS } from './common/model.mjs'
+import { shellTool } from './common/tools.mjs'
 
 const messages = [new SystemMessage('你是一个能执行终端命令的 AI 助手')]
 const tools = [shellTool]

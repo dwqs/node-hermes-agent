@@ -2,10 +2,10 @@ import { SystemMessage, HumanMessage, ToolMessage } from '@langchain/core/messag
 import readline from 'readline/promises'
 import chalk from 'chalk'
 
-import { model, MAX_ITERATIONS } from './common.mjs'
-import { initDB, getSessionMessages, addMessage, createSession } from './persistent.mjs'
-import { toolRegistry } from './tools.mjs'
-import { buildSystemPrompt } from './system-prompt-builder.mjs'
+import { model, MAX_ITERATIONS } from './common/model.mjs'
+import { initDB, getSessionMessages, addMessage, createSession } from './common/persistent.mjs'
+import { toolRegistry } from './common/tools.mjs'
+import { buildSystemPrompt } from './common/system-prompt-builder.mjs'
 
 const modelWithTools = model.bindTools(toolRegistry.getDefinitions())
 
