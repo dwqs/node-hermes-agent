@@ -8,21 +8,18 @@ git clone git@github.com:dwqs/node-hermes-agent.git
 cd node-hermes-agent
 
 pnpm i
+
+cp .env.example .env
 ```
 
-在根目录下创建 `.env` 文件：
+在 `.env` 文件配置 API Key 之后:
 
 ```
-OPEN_AI_API_KEY=your api key
-MODEL_BASE_URL=base url
-AI_MODEL_NAME=model name
-MAX_ITERATIONS=30
-DB_PATH=state.db
-HERMES_HOME=./.hermes
+node src/s01-agent-loop.mjs
 ```
 
 ### 脚本功能
-1. `s01-agent-loop`: 实现 Agent 多轮对话
-2. `s02-tool-system`: 实现 Agent 的工具系统
+1. `s01-agent-loop.mjs`: 实现 Agent 多轮对话
+2. `s02-tool-system.mjs`: 实现 Agent 的工具系统
 3. `s03-session-store.mjs`: 实现持久话存储和全文搜索
-4. `s04-prompt-builder`: 实现system prompt 从多个来源分层组装，组装一次缓存复用
+4. `s04-prompt-builder.mjs`: 实现system prompt 从多个来源分层组装，组装一次缓存复用
