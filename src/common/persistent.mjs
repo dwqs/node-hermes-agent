@@ -3,7 +3,8 @@ import { v4 as uuidv4 } from 'uuid'
 import fs from 'fs/promises'
 
 export async function initDB() {
-  const db = new Database(process.env.DB_PATH, { verbose: console.log })
+  // console.log
+  const db = new Database(process.env.DB_PATH, { verbose: null })
   // WAL 模式：读不阻塞写，多进程场景更安全；对单用户 CLI 也没坏处
   db.pragma('journal_mode = WAL');
   const sql = await fs.readFile('./state-db.sql', 'utf8')
