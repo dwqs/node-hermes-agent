@@ -26,6 +26,9 @@ importers:
       langchain:
         specifier: ^1.3.4
         version: 1.3.4(@langchain/core@1.1.41(openai@6.34.0(zod@4.3.6)))(openai@6.34.0(zod@4.3.6))
+      serpapi:
+        specifier: ^2.2.1
+        version: 2.2.1
       uuid:
         specifier: ^14.0.0
         version: 14.0.0
@@ -300,6 +303,9 @@ packages:
     resolution: {integrity: sha512-vFKC2IEtQnVhpT78h1Yp8wzwrf8CM+MzKMHGJZfBtzhZNycRFnXsHk6E5TxIkkMsgNS7mdX3AGB7x2QM2di4lA==}
     engines: {node: '>=10'}
     hasBin: true
+
+  serpapi@2.2.1:
+    resolution: {integrity: sha512-1HXXaIwDmYueFPauAggIkzozMi5P/a4/yRUxB8Z1kad0VQE/7ohf9a6xRQ99aXR252itDChfmJUfBdCA4phCYA==}
 
   simple-concat@1.0.1:
     resolution: {integrity: sha512-cSFtAPtRhljv69IK0hTVZQ+OfE9nePi/rtJmw5UjHeVyVroEqJXP1sFztKUy1qU+xvz3u/sfYJLa947b7nAN2Q==}
@@ -603,6 +609,8 @@ snapshots:
   safe-buffer@5.2.1: {}
 
   semver@7.7.4: {}
+
+  serpapi@2.2.1: {}
 
   simple-concat@1.0.1: {}
 

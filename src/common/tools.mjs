@@ -1,7 +1,9 @@
+import 'dotenv/config'
 import { tool } from '@langchain/core/tools'
 import fs from 'fs/promises'
 import { execSync } from 'child_process'
 import { z } from 'zod'
+import { getJson } from 'serpapi'
 
 const TOOL_TIMEOUT = 30000
 const BLOCKED_COMMANDS = ['rm -rf /', 'mkfs', 'dd if=', 'shutdown', 'reboot']
@@ -102,14 +104,28 @@ export const writeFileTool = tool(
 )
 
 export const webSearchTool = tool(
-  ({ query }) => {
-    return `抱歉，搜索功能目前正在开发中...: ${query}`;
+  async ({ query }) => {
+    try {
+      const response = await getJson({
+        q: query,
+        engine: 'google',
+        api_key: process.env.SERP_API_KEY,
+        timeout: 60000,
+      })
+      console.log(response)
+      return `Google 搜索结果:\n${response.organic_results.map(result => `${result.title}\n${result.snippet}\n${result.link}`).join('\n')}`
+    } catch (err) {
+      if (err.killed) {
+        return '搜索请求超时，请稍后重试'
+      }
+      return `搜索失败: ${err.message}`
+    }
   },
   {
     name: 'web_search',
-    description: '使用此工具进行网络搜索',
+    description: '使用此工具进行网络搜索（通过 Google）',
     schema: z.object({
-      query: z.string().describe('要搜索的查询'),
+      query: z.string().describe('要搜索的查询关键词'),
     }),
   }
 )
