@@ -32,7 +32,7 @@ async function runConversation(input, db, sessionId, systemPrompt) {
     } catch (error) {
       const classified = classifyError(error.status, error)
       console.log(chalk.red(`🔍 错误分类: ${classified.reason}, status: ${error.status}`))
-      
+
       // 优先级：压缩 > 切换模型 > 退避重试；一轮异常至多执行其中一个动作，然后 continue 重试
       if(classified.shouldCompress) {
         messages = await compress(messages)
@@ -52,7 +52,6 @@ async function runConversation(input, db, sessionId, systemPrompt) {
       }
     }
 
-    console.log('\n===', response, '\n')
     if(!response) {
       continue
     }
