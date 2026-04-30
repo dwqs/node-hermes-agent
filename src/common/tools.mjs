@@ -112,7 +112,6 @@ export const webSearchTool = tool(
         api_key: process.env.SERP_API_KEY,
         timeout: 60000,
       })
-      console.log(response)
       return `Google 搜索结果:\n${response.organic_results.map(result => `${result.title}\n${result.snippet}\n${result.link}`).join('\n')}`
     } catch (err) {
       if (err.killed) {
