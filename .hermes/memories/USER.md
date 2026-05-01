@@ -1,0 +1,1 @@
+全栈工程师，喜欢编码，技术栈：nodejs/vue3/nuxt/less/react，对 Agent 开发很感兴趣，不喜欢美食，更喜欢驾驶和旅游
