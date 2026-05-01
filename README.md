@@ -26,3 +26,4 @@ node src/s01-agent-loop.mjs
 5. `s05-context-compression.mjs`: 上下文压缩
 6. `s06-error-recovery.mjs`: 错误恢复机制
 7. `s07-memory-system.mjs`: 记忆管理
+8. `s08-skill-system.mjs`: 技能管理
