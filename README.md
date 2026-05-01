@@ -19,11 +19,12 @@ node src/s01-agent-loop.mjs
 ```
 
 ### 脚本功能
-1. `s01-agent-loop.mjs`: 实现 Agent 多轮对话
-2. `s02-tool-system.mjs`: 实现 Agent 的工具系统
-3. `s03-session-store.mjs`: 实现持久话存储和全文搜索
-4. `s04-prompt-builder.mjs`: 实现system prompt 从多个来源分层组装，组装一次缓存复用
-5. `s05-context-compression.mjs`: 上下文压缩
-6. `s06-error-recovery.mjs`: 错误恢复机制
-7. `s07-memory-system.mjs`: 记忆管理
-8. `s08-skill-system.mjs`: 技能管理
+1. `s01-agent-loop`: 实现 Agent 多轮对话
+2. `s02-tool-system`: 实现 Agent 的工具系统
+3. `s03-session-store`: 实现持久话存储和全文搜索
+4. `s04-prompt-builder`: 实现system prompt 从多个来源分层组装，组装一次缓存复用
+5. `s05-context-compression`: 上下文压缩
+6. `s06-error-recovery`: 错误恢复机制
+7. `s07-memory-system`: 记忆管理
+8. `s08-skill-system`: 技能管理
+9. `s09-permission-system`: 模拟权限管理
