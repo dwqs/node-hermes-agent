@@ -7,6 +7,7 @@ import { getJson } from 'serpapi'
 
 import { manageMemory } from './memory.mjs'
 import { skillManage, skillView } from './skill-system.mjs'
+import { approveDangerousCommand, detectDangerousCommand } from './permission-system.mjs'
 
 const TOOL_TIMEOUT = 30000
 const BLOCKED_COMMANDS = ['rm -rf /', 'mkfs', 'dd if=', 'shutdown', 'reboot']
@@ -42,7 +43,16 @@ class ToolRegistry {
 }
 
 const shellTool = tool(
-  ({ command }) => {
+  async ({ command }) => {
+    // 识别危险命令
+    const matches = detectDangerousCommand(command)
+    if(matches.length > 0) {
+      const approved = await approveDangerousCommand(command, matches)
+      if(!approved) {
+        return JSON.stringify({ error: `拒绝执行危险命令: ${command}` })
+      }
+    }
+
     for (const blocked of BLOCKED_COMMANDS) {
       if (command.includes(blocked)) {
         return JSON.stringify({ error: `Blocked: ${blocked}` })

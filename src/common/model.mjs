@@ -38,3 +38,87 @@ export const USER_CHAR_LIMIT = 1375
 
 // Skill 相关
 export const SKILL_DIR = process.env.HERMES_HOME + '/skills'
+
+/**
+ * 权限相关
+ */
+export const PERMISSION_ALLOWLIST = process.env.HERMES_HOME + '/allowlist.json'
+// 危险命令
+export const DANGEROUS_PATTERNS = [
+  {
+    pattern: /rm\s+(-[a-zA-Z]*f[a-zA-Z]*\s+|.*--no-preserve-root)/,
+    description: 'Recursive/force file deletion'
+  },
+  {
+    pattern: /rm\s+-[a-zA-Z]*r/,
+    description: 'Recursive file deletion'
+  },
+  {
+    pattern: /mkfs\./,
+    description: 'Filesystem format'
+  },
+  {
+    pattern: /dd\s+if=/,
+    description: 'Raw disk write'
+  },
+  {
+    pattern: />\s*\/dev\/sd[a-z]/,
+    description: 'Direct device write'
+  },
+  {
+    pattern: /chmod\s+(-R\s+)?777/,
+    description: 'World-writable permissions'
+  },
+  {
+    pattern: /chown\s+-R\s+/,
+    description: 'Recursive ownership change'
+  },
+  {
+    pattern: /shutdown|reboot|poweroff|init\s+[06]/,
+    description: 'System shutdown/reboot'
+  },
+  {
+    pattern: /kill\s+-9\s+(-1|1\b)/,
+    description: 'Kill all processes'
+  },
+  {
+    pattern: /:\(\)\s*\{\s*:\|\s*:\s*&\s*\}\s*;/,
+    description: 'Fork bomb'
+  },
+  {
+    pattern: /DROP\s+(TABLE|DATABASE|INDEX)/i,
+    description: 'SQL destructive operation'
+  },
+  {
+    pattern: /TRUNCATE\s+TABLE/i,
+    description: 'SQL truncate'
+  },
+  {
+    pattern: /DELETE\s+FROM\s+\w+\s*;?\s*$/i,
+    description: 'SQL delete without WHERE'
+  },
+  {
+    pattern: /curl\s+.*\|\s*(bash|sh|zsh)/,
+    description: 'Pipe remote script to shell'
+  },
+  {
+    pattern: /wget\s+.*\|\s*(bash|sh|zsh)/,
+    description: 'Pipe remote script to shell'
+  },
+  // 用于测试
+  {
+    pattern: /exit|quit|logout/,
+    description: 'Exit session'
+  },
+  {
+    pattern: /ls/,
+    description: 'List files and directories'
+  }
+]
+// 预编译
+export const compiledPatterns = DANGEROUS_PATTERNS.map(({ pattern, description }) => ({
+  pattern: new RegExp(pattern.source, pattern.flags.includes('i') ? pattern.flags : pattern.flags + 'i'),
+  description
+}))
+// 本次会话的审批缓存
+export const sessionApproved = new Set()

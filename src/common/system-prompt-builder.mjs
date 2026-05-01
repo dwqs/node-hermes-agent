@@ -67,6 +67,9 @@ export function buildSystemPrompt() {
     )
   }
 
+  // 危险命令
+  parts.push(`# 危险命令\n在执行危险命令(rm -rf, DROP TABLE, etc.) 之前需要经过用户同意`)
+
   // 当前时间 + cwd 让模型知道"此刻在哪/何时"，避免它做过时假设
   const now = new Date()
   const timeStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
