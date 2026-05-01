@@ -3,6 +3,9 @@ import path from 'node:path'
 import os from 'node:os'
 import fs from 'node:fs'
 
+import { loadMemory, renderEntries } from './memory.mjs'
+import { MEMORY_FILE, USER_FILE } from './model.mjs'
+
 const HERMES_HOME = path.resolve(
   process.env.HERMES_HOME || path.join(os.homedir(), '.hermes')
 )
@@ -14,14 +17,6 @@ function loadSoul() {
     return soul.slice(0, 20000)
   }
   return "你是一个能执行终端命令/读写文件/网络搜索的 AI 助手"
-}
-
-function loadMemory() {
-  const memoryPath = path.join(HERMES_HOME, 'memories', 'MEMORY.md')
-  if (!fs.existsSync(memoryPath)) {
-    return ''
-  }
-  return fs.readFileSync(memoryPath, 'utf-8').slice(0, 5000)
 }
 
 function findProjectContext() {
@@ -51,14 +46,14 @@ function findProjectContext() {
 
 export function buildSystemPrompt() {
   const parts = [loadSoul()]
-  const memory = loadMemory()
-  if (memory) {
-    parts.push(`# Memory\n${memory}`)
-  }
+  const memory = loadMemory(MEMORY_FILE)
+  memory && parts.push(`# Memory\n${renderEntries(memory)}`)
+
+  const user = loadMemory(USER_FILE)
+  user && parts.push(`# User Profile\n${renderEntries(user)}`)
+  
   const project = findProjectContext()
-  if (project) {
-    parts.push(`# Project Context\n${project}`)
-  }
+  project && parts.push(`# Project Context\n${project}`)
 
   // 当前时间 + cwd 让模型知道"此刻在哪/何时"，避免它做过时假设
   const now = new Date()

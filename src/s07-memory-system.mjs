@@ -2,11 +2,11 @@ import readline from 'readline/promises'
 import chalk from 'chalk'
 import { HumanMessage, SystemMessage, ToolMessage } from '@langchain/core/messages'
 
-import { model, MAX_ITERATIONS, FALLBACK_MODEL, MAX_RETRIES, MAX_CONTINUATIONS, CONTINUE_MESSAGE } from './common/model.mjs'
+import { model, MAX_ITERATIONS, FALLBACK_MODEL, MAX_RETRIES, MAX_CONTINUATIONS, CONTINUE_MESSAGE, COMPRESSION_THRESHOLD } from './common/model.mjs'
 import { initDB, createSession, getSessionMessages, addMessage } from './common/persistent.mjs'
 import { buildSystemPrompt } from './common/system-prompt-builder.mjs'
 import { toolRegistry } from './common/tools.mjs'
-import { compress } from './common/context-compression.mjs'
+import { compress, estimateTokens } from './common/context-compression.mjs'
 import { classifyError, exponentialBackoff, switchFallbackModel } from './common/error-recovery.mjs'
 
 let activeClient = model.bindTools(toolRegistry.getDefinitions())
@@ -22,6 +22,11 @@ async function runConversation(input, db, sessionId, systemPrompt) {
   let continuationCount = 0
 
   for (let i = 0; i < MAX_ITERATIONS; i++) {
+    // 达到阈值，先压缩
+    if(estimateTokens(messages) > COMPRESSION_THRESHOLD) {
+      messages = await compress(messages)
+    }
+
     const roundLabel = `第 ${i + 1} 轮`
     console.log(chalk.yellow(`⏳ ${roundLabel} - 正在等待 AI 思考...`));
 
@@ -108,10 +113,10 @@ async function main() {
   const db = await initDB()
   const sessionId = createSession(db)
   const cacheSystemPrompt = buildSystemPrompt()
+  console.log('system prompt: \n', cacheSystemPrompt, '\n')
   
-  console.log('=== s06: Error Recovery ===')
-  console.log(`模型名称: ${process.env.AI_MODEL_NAME}`)
-  console.log(`备选模型: ${FALLBACK_MODEL}`)
+  console.log('=== s07: Memory System ===')
+  console.log(`模型名称: ${process.env.AI_MODEL_NAME}`, `HERMES_HOME: ${process.env.HERMES_HOME}`)
   console.log("输入exit退出\n")
 
   while (true) {

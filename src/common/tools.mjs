@@ -5,9 +5,11 @@ import { execSync } from 'child_process'
 import { z } from 'zod'
 import { getJson } from 'serpapi'
 
+import { manageMemory } from './memory.mjs'
+
 const TOOL_TIMEOUT = 30000
 const BLOCKED_COMMANDS = ['rm -rf /', 'mkfs', 'dd if=', 'shutdown', 'reboot']
-const ENABLED_TOOLSETS = ["terminal", "file", "web"]
+const ENABLED_TOOLSETS = ["terminal", "file", "web", "memory"]
 
 class ToolRegistry {
   constructor() {
@@ -129,11 +131,27 @@ export const webSearchTool = tool(
   }
 )
 
+export const memoryTool = tool(
+  ({ action, target, content }) => {
+    return manageMemory(action, target, content)
+  },
+  {
+    name: 'memory',
+    description: '跨会话管理持久化记忆。操作：add（保存事实）、remove（按关键词删除）、read（列出所有）。目标：memory（通用知识）或 user（用户画像）。写入会立即生效到磁盘，但系统提示词将在下个会话更新。',
+    schema: z.object({
+      action: z.enum(['add', 'remove', 'read']).describe('要执行的操作: add, remove, read'),
+      target: z.enum(['memory', 'user']).describe('类型'),
+      content: z.string().describe('要添加/删除的内容'),
+    }),
+  }
+)
+
 
 const toolRegistry = new ToolRegistry()
 toolRegistry.registerTool(shellTool)
 toolRegistry.registerTool(readFileTool)
 toolRegistry.registerTool(writeFileTool)
 toolRegistry.registerTool(webSearchTool)
+toolRegistry.registerTool(memoryTool)
 
 export { toolRegistry }
