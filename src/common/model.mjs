@@ -35,3 +35,6 @@ export const USER_FILE = MEMORY_DIR + '/USER.md'               // 用户画像
 export const ENTRY_SEP = "\n\n\u00a7\n\n"                      // 用罕见的 § 做分隔符，避免与正文冲突
 export const MEMORY_CHAR_LIMIT = 2200                          // 字符上限，超出按 FIFO 丢弃末尾
 export const USER_CHAR_LIMIT = 1375
+
+// Skill 相关
+export const SKILL_DIR = process.env.HERMES_HOME + '/skills'

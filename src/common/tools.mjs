@@ -6,10 +6,11 @@ import { z } from 'zod'
 import { getJson } from 'serpapi'
 
 import { manageMemory } from './memory.mjs'
+import { skillManage, skillView } from './skill-system.mjs'
 
 const TOOL_TIMEOUT = 30000
 const BLOCKED_COMMANDS = ['rm -rf /', 'mkfs', 'dd if=', 'shutdown', 'reboot']
-const ENABLED_TOOLSETS = ["terminal", "file", "web", "memory"]
+const ENABLED_TOOLSETS = ["terminal", "file", "web", "memory", "skill"]
 
 class ToolRegistry {
   constructor() {
@@ -40,7 +41,7 @@ class ToolRegistry {
   }
 }
 
-export const shellTool = tool(
+const shellTool = tool(
   ({ command }) => {
     for (const blocked of BLOCKED_COMMANDS) {
       if (command.includes(blocked)) {
@@ -65,7 +66,7 @@ export const shellTool = tool(
   }
 )
 
-export const readFileTool = tool(
+const readFileTool = tool(
   async ({ filePath }) => {
     try {
       const content = await fs.readFile(filePath, 'utf-8');
@@ -84,7 +85,7 @@ export const readFileTool = tool(
   }
 )
 
-export const writeFileTool = tool(
+const writeFileTool = tool(
   async ({ filePath, content }) => {
     try {
       const dir = path.dirname(filePath);
@@ -105,7 +106,7 @@ export const writeFileTool = tool(
   }
 )
 
-export const webSearchTool = tool(
+const webSearchTool = tool(
   async ({ query }) => {
     try {
       const response = await getJson({
@@ -131,7 +132,7 @@ export const webSearchTool = tool(
   }
 )
 
-export const memoryTool = tool(
+const memoryTool = tool(
   ({ action, target, content }) => {
     return manageMemory(action, target, content)
   },
@@ -146,6 +147,31 @@ export const memoryTool = tool(
   }
 )
 
+const skillManageTool = tool(
+  skillManage,
+  {
+    name: 'skill_manage',
+    description: '管理 Agent 技能。操作：create（新建技能）、edit（更新）、delete（删除）。',
+    schema: z.object({ 
+      action: z.enum(['create', 'edit', 'delete']).describe('要执行的操作: create, edit, delete'),
+      name: z.string().describe('技能名称'),
+      description: z.string().describe('技能描述'),
+      body: z.string().describe('技能正文') }
+    ),
+    required: ['action', 'name'],
+  }
+)
+
+const skillViewTool = tool(
+  ({ name }) => skillView(name),
+  {
+    name: 'skill_view',
+    description: '根据技能名称，查看 Agent 技能的详细信息。',
+    schema: z.object({ name: z.string().describe('技能名称') }),
+    required: ['name'],
+  }
+)
+
 
 const toolRegistry = new ToolRegistry()
 toolRegistry.registerTool(shellTool)
@@ -153,5 +179,7 @@ toolRegistry.registerTool(readFileTool)
 toolRegistry.registerTool(writeFileTool)
 toolRegistry.registerTool(webSearchTool)
 toolRegistry.registerTool(memoryTool)
+toolRegistry.registerTool(skillManageTool)
+toolRegistry.registerTool(skillViewTool)
 
 export { toolRegistry }

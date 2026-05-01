@@ -5,6 +5,7 @@ import fs from 'node:fs'
 
 import { loadMemory, renderEntries } from './memory.mjs'
 import { MEMORY_FILE, USER_FILE } from './model.mjs'
+import { discoverSkills } from './skill-system.mjs'
 
 const HERMES_HOME = path.resolve(
   process.env.HERMES_HOME || path.join(os.homedir(), '.hermes')
@@ -54,6 +55,17 @@ export function buildSystemPrompt() {
   
   const project = findProjectContext()
   project && parts.push(`# Project Context\n${project}`)
+
+  // skills
+  const skills = discoverSkills()
+  if (skills.length > 0) {
+    const lines = skills.map(skill => `- **${skill.name}**: ${skill.description}`)
+    parts.push(
+      '# 可用技能\n' +
+      '使用 skill_view 加载完整内容。\n' +
+      lines.join('\n')
+    )
+  }
 
   // 当前时间 + cwd 让模型知道"此刻在哪/何时"，避免它做过时假设
   const now = new Date()

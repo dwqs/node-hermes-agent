@@ -32,7 +32,7 @@ export function classifyError(code, err) {
       shouldFallback: false,
     }
   } else if(code === 401 || code === 403) {
-    // 认证错误，切换备选模型
+    // 认证错误/额度不够，切换备选模型
     return {
       reason: 'auth',
       retryable: false,
