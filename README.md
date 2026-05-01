@@ -25,3 +25,4 @@ node src/s01-agent-loop.mjs
 4. `s04-prompt-builder.mjs`: 实现system prompt 从多个来源分层组装，组装一次缓存复用
 5. `s05-context-compression.mjs`: 上下文压缩
 6. `s06-error-recovery.mjs`: 错误恢复机制
+7. `s07-memory-system.mjs`: 记忆管理
