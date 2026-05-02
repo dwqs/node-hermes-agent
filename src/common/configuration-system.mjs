@@ -28,7 +28,15 @@ const DEFAULT_CONFIG = {
     memoryCharLimit: 2200,
     userCharLimit: 1375,
   },
+  continueMessage: '从你中断的地方继续执行',
   dbPath: 'state.db',
+  hermesHome: '',
+  serpApiKey: '',
+  gateway: {
+    sessionIdleTimeout: 86400, // 24小时
+    agentName: 'main',
+    platforms: {},
+  }
 }
 
 let config = null
@@ -102,7 +110,8 @@ export function loadEnv(envPath) {
     }
     // 真实环境变量优先，.env 只做缺省值
     if (!(key in process.env)) {
-      process.env[key] = value
+      // 支持 a=${var}
+      process.env[key] = expandEnvVars(value)
     }
   }
 }

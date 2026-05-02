@@ -1,2 +1,13 @@
+model: ${AI_MODEL_NAME}
+baseUrl: ${MODEL_BASE_URL}
+apiKey: ${OPEN_AI_API_KEY}
 fallback:
   testModel: ${AI_MODEL_NAME}
+  model: qwen3-coder-plus
+  baseUrl: ${MODEL_BASE_URL}
+  apiKey: ${OPEN_AI_API_KEY}
+limits:
+  maxIterations: ${MAX_ITERATIONS}
+dbPath: ${DB_PATH}
+hermesHome: ${HERMES_HOME}
+serpApiKey: ${SERP_API_KEY}
