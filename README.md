@@ -29,3 +29,4 @@ node src/s01-agent-loop.mjs
 8. `s08-skill-system`: 技能管理
 9. `s09-permission-system`: 模拟权限管理
 10. `s10-subagent-delegation`: Sub Agent 实现
+11. `s11-configuration-system`: 测试配置系统
