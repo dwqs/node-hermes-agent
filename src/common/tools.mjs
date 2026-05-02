@@ -8,10 +8,11 @@ import { getJson } from 'serpapi'
 import { manageMemory } from './memory.mjs'
 import { skillManage, skillView } from './skill-system.mjs'
 import { approveDangerousCommand, detectDangerousCommand } from './permission-system.mjs'
+import { buildSubAgent, runSubAgent } from './subagent.mjs'
 
 const TOOL_TIMEOUT = 30000
 const BLOCKED_COMMANDS = ['rm -rf /', 'mkfs', 'dd if=', 'shutdown', 'reboot']
-const ENABLED_TOOLSETS = ["terminal", "file", "web", "memory", "skill"]
+const ENABLED_TOOLSETS = ["terminal", "file", "web", "memory", "skill", "delegate"]
 
 class ToolRegistry {
   constructor() {
@@ -182,6 +183,26 @@ const skillViewTool = tool(
   }
 )
 
+// 委托任务给子 Agent 执行，在父agent 看来，这是一个工具调用
+const delegateTaskTool = tool(
+  async ({ goal, context }) => {
+    if(!goal || !context) {
+      return '任务目标和上下文不能为空'
+    }
+    const subAgentEnv = buildSubAgent(goal, context, toolRegistry.getDefinitions())
+    const result = await runSubAgent(subAgentEnv)
+    return result
+  },
+  {
+    name: 'delegate_task',
+    description: '将特定任务委派给具有独立上下文的子代理。子代理可使用指定的工具集，但不能再进一步委派、修改记忆或管理技能。仅返回最终结果文本。',
+    schema: z.object({
+      goal: z.string().describe('任务目标'),
+      context: z.string().describe('子 Agent 执行任务的相关上下文'),
+    }),
+  }
+)
+
 
 const toolRegistry = new ToolRegistry()
 toolRegistry.registerTool(shellTool)
@@ -191,5 +212,6 @@ toolRegistry.registerTool(webSearchTool)
 toolRegistry.registerTool(memoryTool)
 toolRegistry.registerTool(skillManageTool)
 toolRegistry.registerTool(skillViewTool)
+toolRegistry.registerTool(delegateTaskTool)
 
 export { toolRegistry }

@@ -122,3 +122,7 @@ export const compiledPatterns = DANGEROUS_PATTERNS.map(({ pattern, description }
 }))
 // 本次会话的审批缓存
 export const sessionApproved = new Set()
+
+// Sub Agent
+export const SUB_AGENT_MAX_ITERATIONS = 15
+export const SUB_AGENT_BLOCKED_TOOLS = ['memory', 'skill_manage', 'delegate_task']
