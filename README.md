@@ -28,3 +28,4 @@ node src/s01-agent-loop.mjs
 7. `s07-memory-system`: 记忆管理
 8. `s08-skill-system`: 技能管理
 9. `s09-permission-system`: 模拟权限管理
+10. `s10-subagent-delegation`: Sub Agent 实现
