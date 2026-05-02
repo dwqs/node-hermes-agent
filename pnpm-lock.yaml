@@ -23,6 +23,9 @@ importers:
       dotenv:
         specifier: ^17.3.1
         version: 17.4.2
+      js-yaml:
+        specifier: ^4.1.1
+        version: 4.1.1
       langchain:
         specifier: ^1.3.4
         version: 1.3.4(@langchain/core@1.1.41(openai@6.34.0(zod@4.3.6)))(openai@6.34.0(zod@4.3.6))
@@ -108,6 +111,9 @@ packages:
     resolution: {integrity: sha512-Cxwpt2SfTzTtXcfOlzGEee8O+c+MmUgGrNiBcXnuWxuFJHe6a5Hz7qwhwe5OgaSYI0IJvkLqWX1ASG+cJOkEiA==}
     engines: {node: '>=10'}
 
+  argparse@2.0.1:
+    resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==}
+
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
 
@@ -192,6 +198,10 @@ packages:
 
   js-tiktoken@1.0.21:
     resolution: {integrity: sha512-biOj/6M5qdgx5TKjDnFT1ymSpM5tbd3ylwDtrQvFQSu0Z7bBYko2dF+W/aUkXUPuk6IVpRxk/3Q2sHOzGlS36g==}
+
+  js-yaml@4.1.1:
+    resolution: {integrity: sha512-qQKT4zQxXl8lLwBtHMWwaTcGfFOZviOJet3Oy/xmGk2gZH677CJM9EvtfdSkgWcATZhj/55JZ0rmy3myCT5lsA==}
+    hasBin: true
 
   langchain@1.3.4:
     resolution: {integrity: sha512-umrD+ZC6vr0Q0U1lC5PoIMMQqgnP+7QhaIdAXCeZiSX2GPVBiVR7Ed2ZR+3MPvz1yWrRtIm17wPaovkND+wOXg==}
@@ -434,6 +444,8 @@ snapshots:
 
   ansi-styles@5.2.0: {}
 
+  argparse@2.0.1: {}
+
   base64-js@1.5.1: {}
 
   better-sqlite3@12.9.0:
@@ -501,6 +513,10 @@ snapshots:
   js-tiktoken@1.0.21:
     dependencies:
       base64-js: 1.5.1
+
+  js-yaml@4.1.1:
+    dependencies:
+      argparse: 2.0.1
 
   langchain@1.3.4(@langchain/core@1.1.41(openai@6.34.0(zod@4.3.6)))(openai@6.34.0(zod@4.3.6)):
     dependencies:
