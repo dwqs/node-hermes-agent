@@ -30,3 +30,4 @@ node src/s01-agent-loop.mjs
 9. `s09-permission-system`: 模拟权限管理
 10. `s10-subagent-delegation`: Sub Agent 实现
 11. `s11-configuration-system`: 测试配置系统
+12. `s12-gateway-architecture`: 网关架构实现
