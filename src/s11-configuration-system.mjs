@@ -12,7 +12,7 @@ import { loadYamlConfig, loadEnv } from './common/configuration-system.mjs'
 
 loadEnv()
 const config = loadYamlConfig()
-console.log('\nconfig', config, '\n', process.env.testModel, '\n')
+console.log('\nconfig', config.fallback, '\n', process.env.testModel, '\n')
 
 let activeClient = model.bindTools(toolRegistry.getDefinitions())
 let activeModelName = process.env.testModel || config.model

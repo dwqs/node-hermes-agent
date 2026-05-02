@@ -1,4 +1,2 @@
 fallback:
-  model: qwen3-coder-next
-  baseUrl: https://dashscope.aliyuncs.com/compatible-mode/v1
-  apiKey: test-api-key
+  testModel: ${AI_MODEL_NAME}

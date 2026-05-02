@@ -10,6 +10,7 @@ const DEFAULT_CONFIG = {
     model: '',
     baseUrl: '',
     apiKey: "",
+    testModel: '',
   },
   limits: {
     maxIterations: 30,
