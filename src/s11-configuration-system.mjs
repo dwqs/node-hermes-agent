@@ -12,9 +12,10 @@ import { loadYamlConfig, loadEnv } from './common/configuration-system.mjs'
 
 loadEnv()
 const config = loadYamlConfig()
-console.log('\nconfig', config, '\n', process.env.testModel, '\n', process.env.testbaseUrl, '\n', process.env.testApiKey)
+console.log('\nconfig', config, '\n', process.env.testModel, '\n')
 
 let activeClient = model.bindTools(toolRegistry.getDefinitions())
+let activeModelName = process.env.testModel || config.model
 
 async function runConversation(input, db, sessionId, systemPrompt) {
   let messages = getSessionMessages(db, sessionId)
