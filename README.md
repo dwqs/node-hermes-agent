@@ -31,3 +31,4 @@ node src/s01-agent-loop.mjs
 10. `s10-subagent-delegation`: Sub Agent 实现
 11. `s11-configuration-system`: 测试配置系统
 12. `s12-gateway-architecture`: 网关架构实现
+13. `s13-platform-adapters`: 模拟多平台适配
