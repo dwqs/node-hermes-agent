@@ -6,14 +6,14 @@ import { initDB, getSessionMessages } from './persistent.mjs'
 import { buildSystemPrompt } from './system-prompt-builder.mjs'
 import runConversation from './runConversation.mjs'
 
-const MessageType = {
+export const MessageType = {
   TEXT: 'text',
   IMAGE: 'image',
   AUDIO: 'audio',
   DOCUMENT: 'document',
 }
 
-class SessionSource {
+export class SessionSource {
   constructor(platform, chatId, userId, userName, chatType) {
     this.platform = platform
     this.chatId = chatId
@@ -34,7 +34,7 @@ class SessionSource {
 }
 
 // 所有平台来的消息都翻译成 MessageEvent，下游代码只看这个结构
-class MessageEvent {
+export class MessageEvent {
   constructor(msgId, text, source, msgType, mediaUrls) {
     this.msgId = msgId
     this.text = text
@@ -54,7 +54,7 @@ class MessageEvent {
   }
 }
 
-function buildSessionKey(source, agentName = 'main') {
+export function buildSessionKey(source, agentName = 'main') {
   const { platform, chatId, chatType } = source.toJSON()
   /**
    * 格式: agent:{name}:{platform}:{chat_type}:{chat_id}[:user_id]
@@ -76,7 +76,7 @@ function buildSessionKey(source, agentName = 'main') {
  *   - disconnect()   停止
  *   - send()         把回复发回平台
  */
-class BasePlatformAdapter {
+export class BasePlatformAdapter {
   constructor(platformName) {
     if (new.target === BasePlatformAdapter) {
       throw new Error('BasePlatformAdapter 是抽象类，不能直接实例化')
@@ -330,12 +330,15 @@ export class GatewayRunner {
    * Gateway 不修改核心循环，只是换了一个"消息从哪来"
   */
   async _runAgent(event, sessionKey) {
+    const data = event.toJSON()
+    if(data.source.platform === 'simulated') {
+      return `[模拟AI回复]${event.text}\n`
+    }
     const db = await this._getDB()
     if(!this._history.length) {
       this._history = getSessionMessages(db, sessionKey)
     }
     const model = this.config?.model || process.env.model || process.env.AI_MODEL_NAME
-    const data = event.toJSON()
     
     if(!this._history.length) {
       // 首次会话，创建记录
