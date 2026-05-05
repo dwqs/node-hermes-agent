@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { tool } from '@langchain/core/tools'
 import fs from 'fs/promises'
-import { execSync } from 'child_process'
+// import { execSync } from 'child_process'
 import { z } from 'zod'
 import { getJson } from 'serpapi'
 
@@ -9,10 +9,15 @@ import { manageMemory } from './memory.mjs'
 import { skillManage, skillView } from './skill-system.mjs'
 import { approveDangerousCommand, detectDangerousCommand } from './permission-system.mjs'
 import { buildSubAgent, runSubAgent } from './subagent.mjs'
+import { createBackendEnv } from './terminal-backends.mjs'
+import { loadYamlConfig } from './configuration-system.mjs'
 
 const TOOL_TIMEOUT = 30000
 const BLOCKED_COMMANDS = ['rm -rf /', 'mkfs', 'dd if=', 'shutdown', 'reboot']
 const ENABLED_TOOLSETS = ["terminal", "file", "web", "memory", "skill", "delegate"]
+
+const config = loadYamlConfig()
+let backendEnv = null
 
 class ToolRegistry {
   constructor() {
@@ -60,7 +65,15 @@ const shellTool = tool(
       }
     }
     try {
-      const output = execSync(command, { encoding: 'utf-8', timeout: TOOL_TIMEOUT })
+      // const output = execSync(command, { encoding: 'utf-8', timeout: TOOL_TIMEOUT })
+      // return output.slice(0, 1000) || '(no output)'
+      if(!backendEnv) {
+        backendEnv = createBackendEnv(config)
+      }
+      const { output, returncode } = await backendEnv.execute(command, TOOL_TIMEOUT)
+      if(returncode) {
+        return `${output} (exit code: ${output})`
+      }
       return output.slice(0, 1000) || '(no output)'
     } catch (err) {
       if (err.killed) {

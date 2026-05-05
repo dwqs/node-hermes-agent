@@ -11,3 +11,5 @@ limits:
 dbPath: ${DB_PATH}
 hermesHome: ${HERMES_HOME}
 serpApiKey: ${SERP_API_KEY}
+terminal:
+  backend: local
