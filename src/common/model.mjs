@@ -7,7 +7,7 @@ export const MAX_RETRIES = 3    // 单轮 API 调用的最大重试次数
 export const CONTINUE_MESSAGE = '从你中断的地方继续执行' 
 // 连续被 length 截断时，最多再让模型续写几次   
 export const MAX_CONTINUATIONS = 3
-export const FALLBACK_MODEL = 'qwen3-coder-plus' // 备选模型，在主模型不可用时使用    
+export const FALLBACK_MODEL = 'qwen3-coder-next' // 备选模型，在主模型不可用时使用    
 
 
 export const model = new ChatOpenAI({

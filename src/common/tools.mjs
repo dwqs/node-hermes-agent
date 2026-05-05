@@ -11,13 +11,14 @@ import { approveDangerousCommand, detectDangerousCommand } from './permission-sy
 import { buildSubAgent, runSubAgent } from './subagent.mjs'
 import { createBackendEnv } from './terminal-backends.mjs'
 import { loadYamlConfig } from './configuration-system.mjs'
+import { handleCronTool } from './scheduled-tasks.mjs'
 
 const TOOL_TIMEOUT = 30000
 const BLOCKED_COMMANDS = ['rm -rf /', 'mkfs', 'dd if=', 'shutdown', 'reboot']
-const ENABLED_TOOLSETS = ["terminal", "file", "web", "memory", "skill", "delegate"]
+const ENABLED_TOOLSETS = ["terminal", "file", "web", "memory", "skill", "delegate", "cron"]
 
 const config = loadYamlConfig()
-let backendEnv = null
+const backendEnv = createBackendEnv(config)
 
 class ToolRegistry {
   constructor() {
@@ -68,9 +69,6 @@ const shellTool = tool(
       // const output = execSync(command, { encoding: 'utf-8', timeout: TOOL_TIMEOUT })
       // return output.slice(0, 1000) || '(no output)'
       // 从 s14 开始，改成终端执行环境执行命令
-      if(!backendEnv) {
-        backendEnv = createBackendEnv(config)
-      }
       const { output, returncode } = await backendEnv.execute(command, TOOL_TIMEOUT)
       if(returncode) {
         return `${output} (exit code: ${output})`
@@ -217,6 +215,23 @@ const delegateTaskTool = tool(
   }
 )
 
+const cronJobTool = tool(
+  async ({ action, schedule, prompt, job_id }) => {
+    return handleCronTool({ action, schedule, prompt, job_id })
+  },
+  {
+    name: 'cron',
+    description: "创建、列出或删除定时任务。调度格式：'30m'（一次性延迟）、'每 1s'、'every 2h'（重复间隔）、'0 9 * * 1-5'（cron 表达式）。",
+    schema: z.object({
+      action: z.enum(['create', 'list', 'delete']).describe('要执行的操作: create, list, delete'),
+      schedule: z.string().optional().describe('调度表达式: 30m, 每 1s, every 2h, 0 9 * * 1-5，action=create 时必须'),
+      prompt: z.string().optional().describe('触发消息，action=create 时必须'),
+      job_id: z.string().optional().describe('删除的 job id，action=delete 时必须'),
+    }),
+    required: ['action'],
+  }
+)
+
 
 const toolRegistry = new ToolRegistry()
 toolRegistry.registerTool(shellTool)
@@ -227,5 +242,6 @@ toolRegistry.registerTool(memoryTool)
 toolRegistry.registerTool(skillManageTool)
 toolRegistry.registerTool(skillViewTool)
 toolRegistry.registerTool(delegateTaskTool)
+toolRegistry.registerTool(cronJobTool)
 
 export { toolRegistry }
