@@ -26,7 +26,6 @@ async function runCli() {
   const cacheSystemPrompt = buildSystemPrompt()
 
   async function fireCli(job) {
-    console.log(`\n  [cron] job ${job.jobId} fired from gateway\n`)
     await runConversation(job.prompt, db, sessionId, cacheSystemPrompt)
   }
 
@@ -57,7 +56,6 @@ async function runGateway() {
   runner.addAdapter(consoleAdapter)
 
   function fireGateway(job) {
-    console.log(`  [cron] job ${job.jobId} fired from gateway`)
     const id = `cron-${job.jobId}-${Date.now()}`
     const event = new MessageEvent(
       id,
