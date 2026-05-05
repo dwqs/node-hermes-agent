@@ -32,3 +32,4 @@ node src/s01-agent-loop.mjs
 11. `s11-configuration-system`: 测试配置系统
 12. `s12-gateway-architecture`: 网关架构实现
 13. `s13-platform-adapters`: 模拟多平台适配
+14. `s14-terminal-backends`: 终端执行环境抽象
