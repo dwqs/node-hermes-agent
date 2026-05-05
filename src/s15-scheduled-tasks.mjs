@@ -83,6 +83,7 @@ async function runGateway() {
     // KeyboardInterrupt
   } finally {
     await runner.stop()
+    scheduler.stop()
   }
 }
 
