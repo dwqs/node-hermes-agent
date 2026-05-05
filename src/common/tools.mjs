@@ -67,6 +67,7 @@ const shellTool = tool(
     try {
       // const output = execSync(command, { encoding: 'utf-8', timeout: TOOL_TIMEOUT })
       // return output.slice(0, 1000) || '(no output)'
+      // 从 s14 开始，改成终端执行环境执行命令
       if(!backendEnv) {
         backendEnv = createBackendEnv(config)
       }
