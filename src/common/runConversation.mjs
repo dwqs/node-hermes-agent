@@ -8,7 +8,8 @@ import { toolRegistry } from './tools.mjs'
 import { compress, estimateTokens } from './context-compression.mjs'
 import { classifyError, exponentialBackoff, switchFallbackModel } from './error-recovery.mjs'
 
-import { registerMcpServer, SimulatedMCPServer } from './mcp.mjs'
+import { registerMcpServer, SimulatedMCPServer } from './mcp-simulated.mjs'
+// import { initMcpServers } from './mcp-real.mjs'
 
 const config = loadYamlConfig()
 const model = new ChatOpenAI({
@@ -27,6 +28,9 @@ const server = new SimulatedMCPServer('test-server', {
   double: ({ input }) => String(Number(input) * 2),
 })
 registerMcpServer(server, { tools: { include: ['double'], exclude: ['greet'] } })
+
+// 初始化真实 MCP 服务器
+// await initMcpServers(config)
 
 let activeClient = model.bindTools(toolRegistry.getDefinitions())
 let activeModelName = config.model || config.fallback.model

@@ -8,7 +8,7 @@ import { initDB, createSession } from './common/persistent.mjs'
 import { buildSystemPrompt } from './common/system-prompt-builder.mjs'
 import { GatewayRunner, ConsolePlatformAdapter } from './common/gateway.mjs'
 import { SimulatedPlatformAdapter } from './common/platform-adapters.mjs'
-import { unregisterMcpServer } from './common/mcp.mjs'
+import { unregisterMcpServer } from './common/mcp-simulated.mjs'
 
 loadEnv()
 const config = loadYamlConfig()
