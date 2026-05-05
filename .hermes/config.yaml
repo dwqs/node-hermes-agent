@@ -13,3 +13,11 @@ hermesHome: ${HERMES_HOME}
 serpApiKey: ${SERP_API_KEY}
 terminal:
   backend: local
+mcpServers:
+  github:
+    command: "npx" # stdio 传输
+    args: ["@modelcontextprotocol/server-github"]
+    env:
+      GITHUB_PERSONAL_ACCESS_TOKEN: ${GITHUB_TOKEN}
+    tools:
+      include: [list_issues, create_issue, search_code]

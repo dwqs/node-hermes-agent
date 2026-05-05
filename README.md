@@ -34,3 +34,4 @@ node src/s01-agent-loop.mjs
 13. `s13-platform-adapters`: 模拟多平台适配
 14. `s14-terminal-backends`: 终端执行环境抽象
 15. `s15-scheduled-tasks`: 定时任务机制
+16. `s16-mcp`: MCP mock 实现

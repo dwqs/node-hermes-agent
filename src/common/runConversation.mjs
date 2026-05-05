@@ -8,6 +8,8 @@ import { toolRegistry } from './tools.mjs'
 import { compress, estimateTokens } from './context-compression.mjs'
 import { classifyError, exponentialBackoff, switchFallbackModel } from './error-recovery.mjs'
 
+import { registerMcpServer, SimulatedMCPServer } from './mcp.mjs'
+
 const config = loadYamlConfig()
 const model = new ChatOpenAI({
   modelName: config.model,
@@ -19,6 +21,13 @@ const model = new ChatOpenAI({
       baseURL: config.baseUrl,
   },
 })
+
+const server = new SimulatedMCPServer('test-server', {
+  greet: ({ input }) => `Hello, ${input}!`,
+  double: ({ input }) => String(Number(input) * 2),
+})
+registerMcpServer(server, { tools: { include: ['double'], exclude: ['greet'] } })
+
 let activeClient = model.bindTools(toolRegistry.getDefinitions())
 let activeModelName = config.model || config.fallback.model
 

@@ -15,7 +15,7 @@ import { handleCronTool } from './scheduled-tasks.mjs'
 
 const TOOL_TIMEOUT = 30000
 const BLOCKED_COMMANDS = ['rm -rf /', 'mkfs', 'dd if=', 'shutdown', 'reboot']
-const ENABLED_TOOLSETS = ["terminal", "file", "web", "memory", "skill", "delegate", "cron"]
+const ENABLED_TOOLSETS = ["terminal", "file", "web", "memory", "skill", "delegate", "cron", "mcp_"]
 
 const config = loadYamlConfig()
 const backendEnv = createBackendEnv(config)
