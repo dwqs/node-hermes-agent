@@ -12,10 +12,15 @@ import { buildSubAgent, runSubAgent } from './subagent.mjs'
 import { createBackendEnv } from './terminal-backends.mjs'
 import { loadYamlConfig } from './configuration-system.mjs'
 import { handleCronTool } from './scheduled-tasks.mjs'
+import { browserTools } from './browser-automation.mjs'
 
 const TOOL_TIMEOUT = 30000
 const BLOCKED_COMMANDS = ['rm -rf /', 'mkfs', 'dd if=', 'shutdown', 'reboot']
-const ENABLED_TOOLSETS = ["terminal", "file", "web", "memory", "skill", "delegate", "cron", "mcp_"]
+const ENABLED_TOOLSETS = [
+  'terminal', 'file', 'web', 
+  'memory', 'skill', 'delegate', 
+  'cron', 'mcp_', 'browser'
+]
 
 const config = loadYamlConfig()
 const backendEnv = createBackendEnv(config)
@@ -243,5 +248,7 @@ toolRegistry.registerTool(skillManageTool)
 toolRegistry.registerTool(skillViewTool)
 toolRegistry.registerTool(delegateTaskTool)
 toolRegistry.registerTool(cronJobTool)
+
+browserTools.forEach(t => toolRegistry.registerTool(tool(t.handler, t.meta)))
 
 export { toolRegistry }

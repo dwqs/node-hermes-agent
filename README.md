@@ -35,3 +35,4 @@ node src/s01-agent-loop.mjs
 14. `s14-terminal-backends`: 终端执行环境抽象
 15. `s15-scheduled-tasks`: 定时任务机制
 16. `s16-mcp`: MCP mock 实现
+17. `s17-browser-automation`: 模拟浏览器行为
