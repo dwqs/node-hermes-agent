@@ -13,13 +13,15 @@ import { createBackendEnv } from './terminal-backends.mjs'
 import { loadYamlConfig } from './configuration-system.mjs'
 import { handleCronTool } from './scheduled-tasks.mjs'
 import { browserTools } from './browser-automation.mjs'
+import { handleVisionAnalyze, handleTextToSpeech } from './voice-vision.mjs'
 
 const TOOL_TIMEOUT = 30000
 const BLOCKED_COMMANDS = ['rm -rf /', 'mkfs', 'dd if=', 'shutdown', 'reboot']
 const ENABLED_TOOLSETS = [
   'terminal', 'file', 'web', 
   'memory', 'skill', 'delegate', 
-  'cron', 'mcp_', 'browser'
+  'cron', 'mcp_', 'browser',
+  'media'
 ]
 
 const config = loadYamlConfig()
@@ -237,6 +239,29 @@ const cronJobTool = tool(
   }
 )
 
+const visionAnalyzeTool = tool(
+  handleVisionAnalyze,
+  {
+    name: 'media_vision_analyze',
+    description: '分析图像内容',
+    schema: z.object({
+      image_url: z.string().describe('图像URL'),
+      question: z.string().describe('问题'),
+    }),
+  }
+)
+
+const ttsTool = tool(
+  handleTextToSpeech,
+  {
+    name: 'media_tts',
+    description: '将文本转为语音',
+    schema: z.object({
+      text: z.string().describe('要转换的文本'),
+    }),
+  }
+)
+
 
 const toolRegistry = new ToolRegistry()
 toolRegistry.registerTool(shellTool)
@@ -248,6 +273,8 @@ toolRegistry.registerTool(skillManageTool)
 toolRegistry.registerTool(skillViewTool)
 toolRegistry.registerTool(delegateTaskTool)
 toolRegistry.registerTool(cronJobTool)
+toolRegistry.registerTool(visionAnalyzeTool)
+toolRegistry.registerTool(ttsTool)
 
 browserTools.forEach(t => toolRegistry.registerTool(tool(t.handler, t.meta)))
 
