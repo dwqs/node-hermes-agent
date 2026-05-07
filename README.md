@@ -37,3 +37,4 @@ node src/s01-agent-loop.mjs
 16. `s16-mcp`: MCP mock 实现
 17. `s17-browser-automation`: 模拟浏览器行为
 18. `s18-voice-vision`: 模拟视觉/音频模型
+19. `s19-cli-and-web-interface`: CLI 交互和流式响应
