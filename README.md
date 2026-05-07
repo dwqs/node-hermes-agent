@@ -1,5 +1,5 @@
 # node-hermes-agent
-基于[Learn Hermes Agent](https://github.com/longyunfeigu/learn-hermes-agent)的 node 版本实现
+基于教程 [Learn Hermes Agent](https://github.com/longyunfeigu/learn-hermes-agent) 的 node 版本实现
 
 ## 本地运行
 ```
