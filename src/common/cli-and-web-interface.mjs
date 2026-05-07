@@ -6,6 +6,7 @@ import { initDB, createSession, getSessionMessages } from './persistent.mjs'
 import { buildSystemPrompt } from './system-prompt-builder.mjs'
 import { compress } from './context-compression.mjs'
 import runConversation from './runConversation.mjs'
+import { ReviewState } from './background-review.mjs'
 
 class CommandDef {
   /**
@@ -124,6 +125,9 @@ export class HermesCLI {
     this._agentRunning = false
     this._spinnerText = ''
     this._renderer = new StreamRenderer((text) => this._cliPrint(text))
+
+    // s20
+    this._reviewState = new ReviewState()
   }
 
   async init() {
@@ -253,10 +257,13 @@ export class HermesCLI {
             this.streaming ? (text) => this._streamDelta(text) : null,
             (eventType, functionName, preview, functionArgs, duration, isError) =>
               this._onToolProgress(eventType, functionName, preview, functionArgs, duration, isError),
+            null,
+            this._reviewState,
+            (msg) => console.log(chalk.green(`  ${msg}`)),
           )
           // If not streaming, print the full response
           if (!this.streaming) {
-            console.log(`\nAssistant: ${result.final_response}\n`)
+            console.log(`\nAssistant: ${result}\n`)
           } else {
             this._renderer.flush()
             console.log() // newline after streamed response

@@ -11,6 +11,7 @@ import { classifyError, exponentialBackoff, switchFallbackModel } from './error-
 import { registerMcpServer, SimulatedMCPServer } from './mcp-simulated.mjs'
 // import { initMcpServers } from './mcp-real.mjs'
 import { collectStream } from './collect-stream.mjs'
+import { maybeTriggerReview } from './background-review.mjs'
 
 const streaming = process.argv.includes('--streaming')
 const config = loadYamlConfig()
@@ -38,11 +39,27 @@ registerMcpServer(server, { tools: { include: ['double'], exclude: ['greet'] } }
 let activeClient = model.bindTools(toolRegistry.getDefinitions())
 let activeModelName = config.model || config.fallback.model
 
-async function runConversation(input, db, sessionId, systemPrompt, streamCallback = null, toolProgressCallback = null) {
+async function runConversation(
+  input,
+  db,
+  sessionId,
+  systemPrompt,
+  streamCallback = null,
+  toolProgressCallback = null, 
+  // s20 新增参数
+  maxIterationsOverride = null,
+  reviewState = null,
+  reviewCallback = null,
+) {
   let messages = getSessionMessages(db, sessionId)
   const humanMsg = new HumanMessage(input)
   messages.push(humanMsg)
   addMessage(db, sessionId, { role: humanMsg.type, content: humanMsg.content })
+
+  // s20
+  if(reviewState) {
+    reviewState.onUserMessage()
+  }
 
   let retryCount = 0
   let continuationCount = 0
@@ -57,7 +74,8 @@ async function runConversation(input, db, sessionId, systemPrompt, streamCallbac
     }
   }
 
-  for (let i = 0; i < config.limits.maxIterations; i++) {
+  const maxIterations = maxIterationsOverride || config.limits.maxIterations
+  for (let i = 0; i < maxIterations; i++) {
     // 达到阈值，先压缩
     if(estimateTokens(messages) > config.compression.threshold) {
       messages = await compress(messages)
@@ -69,6 +87,7 @@ async function runConversation(input, db, sessionId, systemPrompt, streamCallbac
     let response = null
     try {
       if(streaming) {
+        // s19
         response = await activeClient.stream([new SystemMessage(systemPrompt), ...messages])
       } else {
         response = await activeClient.invoke([new SystemMessage(systemPrompt), ...messages])
@@ -129,6 +148,8 @@ async function runConversation(input, db, sessionId, systemPrompt, streamCallbac
     }
 
     if (!response.tool_calls || response.tool_calls.length === 0) {
+      // s20: 是否需要回顾
+      maybeTriggerReview(reviewState, messages, db, systemPrompt, reviewCallback)
       if(streamCallback) {
         return
       }
@@ -156,10 +177,23 @@ async function runConversation(input, db, sessionId, systemPrompt, streamCallbac
         toolProgressCallback('tool.completed', toolCall.name, argsPreview, toolCall.args, duration, isError)
       }
       const toolMsg = new ToolMessage({ content: toolResult, tool_call_id: toolCall.id, name: toolCall.name });
+
+      // s20 新增
+      if(reviewState) {
+        reviewState.onToolIteration()
+        if(['memory', 'skill_manage'].includes(toolCall.name)) {
+          // 显式使用记忆/技能工具时，重置回顾计数器
+          reviewState.onManualMemoryOrSkill()
+        }
+      }
+
       messages.push(toolMsg);
       addMessage(db, sessionId, { role: toolMsg.type, content: toolResult, tool_call_id: toolCall.id  });
     }
   }
+
+  // s20: 是否需要回顾
+  maybeTriggerReview(reviewState, messages, db, systemPrompt, reviewCallback)
 
   console.log(chalk.red('⚠️  达到最大迭代次数'))
   return messages[messages.length - 1].content

@@ -2,9 +2,9 @@ import Database from 'better-sqlite3'
 import { v4 as uuidv4 } from 'uuid'
 import fs from 'fs/promises'
 
-export async function initDB() {
+export async function initDB(dbPath = null) {
   // console.log
-  const db = new Database(process.env.DB_PATH, { verbose: null })
+  const db = new Database(dbPath ||process.env.DB_PATH, { verbose: null })
   // WAL 模式：读不阻塞写，多进程场景更安全；对单用户 CLI 也没坏处
   db.pragma('journal_mode = WAL');
   const sql = await fs.readFile('./state-db.sql', 'utf8')
@@ -75,5 +75,5 @@ export function addMessage(db, sessionId, msg) {
     INSERT INTO messages
       (session_id, role, content, tool_calls, tool_call_id, timestamp)
     VALUES (?, ?, ?, ?, ?, ?)
-  `).run(sessionId, msg.role, msg.content || '', toolCallsJson, msg.tool_call_id || null, Date.now())
+  `).run(sessionId, msg.role || msg.type, msg.content || '', toolCallsJson, msg.tool_call_id || null, Date.now())
 }

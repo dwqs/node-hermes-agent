@@ -60,7 +60,7 @@ export function manageMemory(action, target, content) {
     if (entries.length === 0) {
       return `(${target} 为空)`
     }
-      return `=== ${target.toUpperCase()} (${entries.length} 个条目) ===\n` + renderEntries(entries)
+    return `=== ${target.toUpperCase()} (${entries.length} 个条目) ===\n` + renderEntries(entries)
   }
   if (action === 'add') {
     if (!content) {
