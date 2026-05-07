@@ -10,7 +10,9 @@ import { classifyError, exponentialBackoff, switchFallbackModel } from './error-
 
 import { registerMcpServer, SimulatedMCPServer } from './mcp-simulated.mjs'
 // import { initMcpServers } from './mcp-real.mjs'
+import { collectStream } from './collect-stream.mjs'
 
+const streaming = process.argv.includes('--streaming')
 const config = loadYamlConfig()
 const model = new ChatOpenAI({
   modelName: config.model,
@@ -18,6 +20,7 @@ const model = new ChatOpenAI({
   temperature: 0,
   timeout: 60000,
   maxRetries: config.limits.maxRetries,
+  streaming: streaming,
   configuration: {
       baseURL: config.baseUrl,
   },
@@ -35,7 +38,7 @@ registerMcpServer(server, { tools: { include: ['double'], exclude: ['greet'] } }
 let activeClient = model.bindTools(toolRegistry.getDefinitions())
 let activeModelName = config.model || config.fallback.model
 
-async function runConversation(input, db, sessionId, systemPrompt) {
+async function runConversation(input, db, sessionId, systemPrompt, streamCallback = null, toolProgressCallback = null) {
   let messages = getSessionMessages(db, sessionId)
   const humanMsg = new HumanMessage(input)
   messages.push(humanMsg)
@@ -43,6 +46,16 @@ async function runConversation(input, db, sessionId, systemPrompt) {
 
   let retryCount = 0
   let continuationCount = 0
+
+  function fireStreamDelta(text) {
+    if (streamCallback) {
+      try {
+        streamCallback(text)
+      } catch (err) {
+        // ignore
+      }
+    }
+  }
 
   for (let i = 0; i < config.limits.maxIterations; i++) {
     // 达到阈值，先压缩
@@ -55,7 +68,15 @@ async function runConversation(input, db, sessionId, systemPrompt) {
 
     let response = null
     try {
-      response = await activeClient.invoke([new SystemMessage(systemPrompt), ...messages])
+      if(streaming) {
+        response = await activeClient.stream([new SystemMessage(systemPrompt), ...messages])
+      } else {
+        response = await activeClient.invoke([new SystemMessage(systemPrompt), ...messages])
+      }
+
+      if(streaming) {
+        response = await collectStream(response, fireStreamDelta)
+      }
       messages.push(response)
     } catch (error) {
       const classified = classifyError(error.status, error)
@@ -97,7 +118,7 @@ async function runConversation(input, db, sessionId, systemPrompt) {
     }
     addMessage(db, sessionId, { tool_calls: toolCalls, role: response.type, content: response.content })
 
-    // 自动续写：模型因 max_tokens 被截断时，注入 "请继续" 让它接着写
+    // finish_reason 一般有 stop / length / stop_call 等, 当 finish_reason 为 length 时，说明模型因 max_tokens 被截断，需要注入 "请继续" 让它接着写
     const finishReason = response.response_metadata.finish_reason
     if(finishReason === 'length' && continuationCount < config.limits.maxContinuations) {
       continuationCount++
@@ -108,15 +129,32 @@ async function runConversation(input, db, sessionId, systemPrompt) {
     }
 
     if (!response.tool_calls || response.tool_calls.length === 0) {
-      console.log(`\n✨ AI 回复:\n${response.content}\n`);
-      return response.content;
+      if(streamCallback) {
+        return
+      }
+      console.log(`\n✨ AI 回复:\n${response.content}\n`)
+      return response.content
     }
 
     continuationCount = 0
+    fireStreamDelta(null)
+
     console.log(chalk.bgBlue(`🔍 工具调用: ${response.tool_calls.map(t => t.name).join(', ')}`));
     for (const toolCall of response.tool_calls) {
       console.log(chalk.green(`🔍 工具调用: ${toolCall.name} - 参数: ${JSON.stringify(toolCall.args)}`));
+
+      const argsPreview = JSON.stringify(toolCall.args).slice(0, 120)
+      if(toolProgressCallback) {
+        toolProgressCallback('tool.started', toolCall.name, argsPreview, toolCall.args, 0, false)
+      }
+
+      const now = Date.now()
       const toolResult = await toolRegistry.dispatch(toolCall.name, toolCall.args);
+      const duration = (Date.now() - now) / 1000
+      const isError = toolResult.startsWith('(error') || toolResult.slice(0, 50).includes('error')
+      if(toolProgressCallback) {
+        toolProgressCallback('tool.completed', toolCall.name, argsPreview, toolCall.args, duration, isError)
+      }
       const toolMsg = new ToolMessage({ content: toolResult, tool_call_id: toolCall.id, name: toolCall.name });
       messages.push(toolMsg);
       addMessage(db, sessionId, { role: toolMsg.type, content: toolResult, tool_call_id: toolCall.id  });

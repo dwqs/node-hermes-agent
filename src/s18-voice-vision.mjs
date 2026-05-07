@@ -86,7 +86,7 @@ async function runSimulate() {
 }
 
 function main() {
-  console.log('=== s16: Browser Automation ===')
+  console.log('=== s18: Voice Vision ===')
   console.log(`模型名称: ${process.env.model}`)
   console.log(`Profile(Hermes Home): ${config.hermesHome}`)
   console.log("输入exit退出\n")

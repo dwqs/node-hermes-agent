@@ -7,14 +7,22 @@ import runConversation from './common/runConversation.mjs'
 import { initDB, createSession } from './common/persistent.mjs'
 import { buildSystemPrompt } from './common/system-prompt-builder.mjs'
 import { GatewayRunner, ConsolePlatformAdapter } from './common/gateway.mjs'
-import { SimulatedPlatformAdapter } from './common/platform-adapters.mjs'
+import { HermesCLI } from './common/cli-and-web-interface.mjs'
 
 loadEnv()
 const config = loadYamlConfig()
 console.log('\nconfig=======\n', config, '\n========\n')
 
-async function runCli() {
-  console.log('CLI mode\n')
+function runCli() {
+  console.log('CLI mode with streaming\n')
+  const cli = new HermesCLI(config)
+  cli.run()
+}
+
+async function runLegacyCli() {
+  console.log('Legacy CLI mode\n')
+  console.log("输入exit退出\n")
+
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
@@ -40,6 +48,8 @@ async function runCli() {
 
 async function runGateway() {
   console.log('所有消息经由 GatewayRunner → adapter → 核心循环\n')
+  console.log("输入exit退出\n")
+
   const runner = new GatewayRunner(config, config.dbPath)
   const consoleAdapter = new ConsolePlatformAdapter()
 
@@ -57,46 +67,23 @@ async function runGateway() {
   }
 }
 
-async function runSimulate() {
-  console.log('=== s13: Platform Adapters (Simulated Gateway) ===')
-  console.log('Replaying scripted messages to demo batching + dedup...\n')
-  
-  const runner = new GatewayRunner(config, config.dbPath)
-  const sim = new SimulatedPlatformAdapter()
-  runner.addAdapter(sim)
-
-  await runner.start()
-
-  try {
-    while (sim._running) {
-      await setTimeout(500)
-    }
-  } catch (err) {
-    // KeyboardInterrupt
-  } finally {
-    await runner.stop()
-  }
-
-  // Report what happened
-  console.log('\n--- Simulation Summary ---')
-  console.log(`Replies sent: ${sim._replies.length}`)
-  for (const [chatId, content] of sim._replies) {
-    console.log(`  → ${chatId}: ${content.slice(0, 80)}...`)
-  }
+function runWebInterface() {
+  console.log('Web interface mode\n')
 }
 
 function main() {
-  console.log('=== s17: Browser Automation ===')
+  console.log('=== s19: CLI and Web Interface ===')
   console.log(`模型名称: ${process.env.model}`)
   console.log(`Profile(Hermes Home): ${config.hermesHome}`)
-  console.log("输入exit退出\n")
 
   if(process.argv.includes('--gateway')) {
     runGateway()
-  } else if(process.argv.includes('--simulate')) {
-    runSimulate()
-  } else {
+  } else if(process.argv.includes('--web')) {
+    runWebInterface()
+  } else if(process.argv.includes('--streaming')) {
     runCli()
+  } else {
+    runLegacyCli()
   }
 }
 
