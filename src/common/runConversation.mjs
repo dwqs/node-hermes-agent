@@ -12,6 +12,7 @@ import { registerMcpServer, SimulatedMCPServer } from './mcp-simulated.mjs'
 // import { initMcpServers } from './mcp-real.mjs'
 import { collectStream } from './collect-stream.mjs'
 import { maybeTriggerReview } from './background-review.mjs'
+import { pluginHookRegistry } from './hook-system.mjs'
 
 const streaming = process.argv.includes('--streaming')
 const config = loadYamlConfig()
@@ -162,6 +163,8 @@ async function runConversation(
 
     console.log(chalk.bgBlue(`🔍 工具调用: ${response.tool_calls.map(t => t.name).join(', ')}`));
     for (const toolCall of response.tool_calls) {
+      // s22
+      pluginHookRegistry.invokeHook('pre_tool_call', toolCall)
       console.log(chalk.green(`🔍 工具调用: ${toolCall.name} - 参数: ${JSON.stringify(toolCall.args)}`));
 
       const argsPreview = JSON.stringify(toolCall.args).slice(0, 120)
@@ -186,7 +189,8 @@ async function runConversation(
           reviewState.onManualMemoryOrSkill()
         }
       }
-
+      // s22
+      pluginHookRegistry.invokeHook('post_tool_call', toolMsg)
       messages.push(toolMsg);
       addMessage(db, sessionId, { role: toolMsg.type, content: toolResult, tool_call_id: toolCall.id  });
     }

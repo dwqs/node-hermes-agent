@@ -40,3 +40,4 @@ node src/s01-agent-loop.mjs
 19. `s19-cli-and-web-interface`: CLI 交互和流式响应
 20. `s20-background-review`: 后台审视/回顾(AI 自我学习)
 21. `s21-skill-creation-loop`: 技能自主创作闭环
+22. `s22-hook-system`: Hook System & BOOT.md
