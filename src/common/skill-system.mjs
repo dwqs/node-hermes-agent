@@ -9,7 +9,7 @@ import { SKILL_DIR } from './model.mjs'
  * @param {string} text - 要解析的文本
  * @returns {[Object, string]} 元数据对象和正文
  */
-function parseSkillFormatter(text) {
+export function parseSkillFormatter(text) {
   if (!text.startsWith('---')) {
     return [{}, text]
   }

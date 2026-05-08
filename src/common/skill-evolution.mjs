@@ -2,7 +2,8 @@ import { mkdir, writeFile, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { HumanMessage, SystemMessage } from '@langchain/core/messages'
 
-import { model } from './model.mjs'
+import { model, SKILL_DIR } from './model.mjs'
+import { parseSkillFormatter, loadSkill } from './skill-system.mjs'
 
 /**
  * s25
@@ -121,12 +122,7 @@ For each test case, output a JSON object with:
 
 Return a JSON array of {num_cases} test cases. Only JSON, no other text.`
 
-  /**
-   * 从 skill 文本生成合成评估数据集。
-   * @param {string} skillText
-   * @param {number} [numCases=15]
-   * @returns {EvalDataset}
-   */
+  // 从 skill 文本生成合成评估数据集。
   async generate(skillText, numCases = 15) {
     const prompt = SyntheticDatasetBuilder.GENERATE_PROMPT
       .replace('{skill_text}', skillText.slice(0, 5000))
@@ -221,10 +217,6 @@ Return JSON: {"correctness": 0.0, "procedure_following": 0.0, "conciseness": 0.0
  *
  * use_llm=false 时用快速启发式评分（keyword overlap），
  * 和 Hermes 的 skill_fitness_metric() 一致——优化过程中用来加速。
- * @param {string} skillText
- * @param {EvalExample} example
- * @param {boolean} [useLLM=true]
- * @returns {FitnessScore}
  */
 async function evaluateSkill(skillText, example, useLLM = true) {
   if (!useLLM) {
@@ -383,4 +375,231 @@ class ConstraintValidator {
     }
     return new ConstraintResult(false, 'skill_structure', 'missing heading or frontmatter')
   }
+}
+
+// 一次完整进化的结果
+class EvolutionResult {
+  constructor(originalText, evolvedText, originalScore, evolvedScore, iterations, improvement = 0.0, feedbacks = []) {
+    this.originalText = originalText
+    this.evolvedText = evolvedText
+    this.originalScore = originalScore
+    this.evolvedScore = evolvedScore
+    this.iterations = iterations
+    this.improvement = improvement
+    this.feedbacks = feedbacks
+  }
+}
+
+const MUTATE_PROMPT = `You are optimizing an AI agent skill file to improve performance.
+
+CURRENT SKILL TEXT:
+{current_text}
+
+PERFORMANCE FEEDBACK from evaluation:
+{feedback}
+
+Based on this feedback, rewrite the skill text to address the issues.
+Keep the same general purpose and structure, but improve:
+- Clarity of instructions
+- Handling of edge cases mentioned in feedback
+- Step-by-step procedure
+
+Return ONLY the improved skill text, no explanations.`
+
+/**
+ * 教学版优化器：模拟 GEPA 的核心思路，不依赖 DSPy。
+ *
+ * 真正的 GEPA 通过 dspy.GEPA() 驱动——它读执行 trace，
+ * 理解"为什么"失败，然后做针对性变异。
+ *
+ * 这里的简化版做同样的事：
+ * 1. 在 train set 上评估当前版本，收集 feedback
+ * 2. 把 feedback 喂给 LLM，让它重写 skill
+ * 3. 在 val set 上评估新版本
+ * 4. 如果更好就保留，否则回退
+ * 5. 重复
+ */
+class SkillOptimizer {
+  /**
+   * @param {boolean} [useLLM=true]
+   */
+  constructor(useLLM = true) {
+    this.useLLM = useLLM
+  }
+
+  // 运行完整的优化循环
+  async optimize(skillText, dataset, iterations = 5) {
+    let current = skillText
+    let best = skillText
+    let bestScore = await this._scoreOnSplit(current, dataset.val)
+    const originalScore = bestScore
+    const allFeedbacks = []
+
+    console.log(`  [evolve] baseline score: ${originalScore.toFixed(3)}`)
+
+    for (let i = 0; i < iterations; i++) {
+      // 1. 在 train set 上评估，收集 feedback
+      const feedbacks = []
+      for (const ex of dataset.train) {
+        const fs = await evaluateSkill(current, ex, this.useLLM)
+        if (fs.feedback) {
+          feedbacks.push(fs.feedback)
+        }
+      }
+
+      const combinedFeedback = feedbacks.slice(0, 5).join('\n')
+      allFeedbacks.push(combinedFeedback)
+
+      // 2. 让 LLM 基于 feedback 生成变异版本
+      const variant = await this._mutate(current, combinedFeedback)
+      if (!variant || variant.trim() === current.trim()) {
+        console.log(`  [evolve] iter ${i + 1}: no change, skipping`)
+        continue
+      }
+
+      // 3. 在 val set 上评估变异版本
+      const variantScore = await this._scoreOnSplit(variant, dataset.val)
+
+      // 4. 如果更好就保留
+      if (variantScore > bestScore) {
+        const improvement = variantScore - bestScore
+        console.log(`  [evolve] iter ${i + 1}: ${bestScore.toFixed(3)} -> ${variantScore.toFixed(3)} (+${improvement.toFixed(3)})`)
+        best = variant
+        bestScore = variantScore
+        current = variant
+      } else {
+        console.log(`  [evolve] iter ${i + 1}: ${variantScore.toFixed(3)} (no improvement)`)
+      }
+    }
+
+    return new EvolutionResult(
+      skillText,
+      best,
+      originalScore,
+      bestScore,
+      iterations,
+      bestScore - originalScore,
+      allFeedbacks,
+    )
+  }
+
+  // 在一个数据子集上计算平均 composite 得分
+  async _scoreOnSplit(skillText, examples) {
+    if (!examples || examples.length === 0) {
+      return 0.0
+    }
+    const scores = []
+    for (const ex of examples) {
+      const fs = await evaluateSkill(skillText, ex, this.useLLM)
+      scores.push(fs.composite)
+    }
+    return scores.reduce((sum, s) => sum + s, 0) / scores.length
+  }
+
+  // 让 LLM 基于 feedback 重写 skill。
+  async _mutate(currentText, feedback) {
+    if (!feedback.trim()) {
+      return currentText
+    }
+
+    const prompt = MUTATE_PROMPT.replace('{current_text}', currentText.slice(0, 5000))
+      .replace('{feedback}', feedback.slice(0, 2000))
+
+    try {
+      const response = await model.invoke([new HumanMessage(prompt)], {
+        maxTokens: 4000,
+      })
+      return response.content || currentText
+    } catch (exc) {
+      console.log(`  [evolve] mutation error: ${exc.message}`)
+      return currentText
+    }
+  }
+}
+
+/**
+ * 完整的 7 步进化管线，对齐 Hermes 的 evolve_skill.py。
+ *
+ * 1. 查找并加载 skill
+ * 2. 生成评估数据集
+ * 3. 验证 baseline 约束
+ * 4. 运行优化器
+ * 5. 验证进化后约束
+ * 6. 在 holdout set 上评估
+ * 7. 保存结果
+ */
+export async function evolveSkill(skillName, iterations = 5, useLLM = true) {
+  const skillFile = path.join(SKILL_DIR, skillName, 'SKILL.md')
+  let raw
+  try {
+    raw = await readFile(skillFile, 'utf-8')
+  } catch {
+    console.log(`  [evolve] skill '${skillName}' not found`)
+    return null
+  }
+
+  const [metadata, body] = parseSkillFormatter(raw)
+  console.log(`  [evolve] loaded: ${skillName} (${body.length} chars)`)
+
+  // 2. 生成评估数据集
+  console.log('  [evolve] generating eval dataset...')
+  const builder = new SyntheticDatasetBuilder()
+  const dataset = await builder.generate(body, 12)
+  console.log(`  [evolve] dataset: ${dataset.train.length}t/${dataset.val.length}v/${dataset.holdout.length}h`)
+  if (!dataset.train || dataset.train.length === 0) {
+    console.log('  [evolve] no training examples generated, aborting')
+    return null
+  }
+
+  // 3. 验证 baseline 约束
+  const validator = new ConstraintValidator()
+  const baselineChecks = validator.validateAll(body)
+  for (const c of baselineChecks) {
+    const tag = c.passed ? 'OK' : 'FAIL'
+    console.log(`  [evolve] baseline ${c.constraintName}: ${tag} (${c.message})`)
+  }
+
+  // 4. 运行优化器
+  console.log(`  [evolve] running optimizer (${iterations} iterations)...`)
+  const optimizer = new SkillOptimizer(useLLM)
+  const result = await optimizer.optimize(body, dataset, iterations)
+
+  // 5. 验证进化后约束
+  const evolvedChecks = validator.validateAll(result.evolvedText, body)
+  let allPass = true
+  for (const c of evolvedChecks) {
+    const tag = c.passed ? 'OK' : 'FAIL'
+    console.log(`  [evolve] evolved ${c.constraintName}: ${tag} (${c.message})`)
+    if (!c.passed) {
+      allPass = false
+    }
+  }
+  if (!allPass) {
+    console.log('  [evolve] FAILED constraint check, not deploying')
+    return result
+  }
+
+  // 6. 在 holdout set 上评估
+  if (dataset.holdout && dataset.holdout.length > 0) {
+    const holdoutScore = await optimizer._scoreOnSplit(result.evolvedText, dataset.holdout)
+    console.log(`  [evolve] holdout score: ${holdoutScore.toFixed(3)}`)
+  }
+
+  // 7. 保存结果（备份原始 + 写入进化版）
+  if (result.improvement > 0) {
+    const backupDir = path.join(SKILL_DIR, skillName, 'backups')
+    await mkdir(backupDir, { recursive: true })
+    const timestamp = new Date().toLocaleString('zh-CN').replace(/[:.]/g, '').slice(0, 15)
+    await writeFile(path.join(backupDir, `SKILL_${timestamp}.md.bak`), raw, 'utf-8')
+    const evolvedFull = loadSkill(
+      metadata.name || skillName,
+      metadata.description || '',
+      result.evolvedText,
+    )
+    await writeFile(skillFile, evolvedFull, 'utf-8')
+    console.log(`  [evolve] deployed! improvement: ${result.improvement >= 0 ? '+' : ''}${result.improvement.toFixed(3)}`)
+  } else {
+    console.log(`  [evolve] no improvement (${result.improvement >= 0 ? '+' : ''}${result.improvement.toFixed(3)}), keeping original`)
+  }
+  return result
 }

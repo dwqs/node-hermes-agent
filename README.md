@@ -45,3 +45,4 @@ node src/s01-agent-loop.mjs
 24. [插件架构](https://github.com/longyunfeigu/learn-hermes-agent/blob/main/docs/zh/s24-plugin-architecture.md)
 25. `s25-skill-evolution`: 自进化总览
 26. `s26-evaluation-system`: 度量体系
+27. `s27-optimization-and-deploy`: 优化与部署
