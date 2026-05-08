@@ -42,3 +42,5 @@ node src/s01-agent-loop.mjs
 21. `s21-skill-creation-loop`: 技能自主创作闭环
 22. `s22-hook-system`: Hook System & BOOT.md
 23. `s23-trajectory-and-rl`: 对话轨迹与强化学习
+24. [插件架构](https://github.com/longyunfeigu/learn-hermes-agent/blob/main/docs/zh/s24-plugin-architecture.md)
+25. `s25-skill-evolution`: 自进化总览 
