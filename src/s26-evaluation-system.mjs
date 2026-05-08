@@ -72,7 +72,7 @@ function runWebInterface() {
 }
 
 function main() {
-  console.log('=== s25: Skill Evolution ===')
+  console.log('=== s26: Evaluation System ===')
   console.log(`模型名称: ${process.env.model}`)
   console.log(`Profile(Hermes Home): ${config.hermesHome}`)
 
