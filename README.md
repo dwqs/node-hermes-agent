@@ -41,3 +41,4 @@ node src/s01-agent-loop.mjs
 20. `s20-background-review`: 后台审视/回顾(AI 自我学习)
 21. `s21-skill-creation-loop`: 技能自主创作闭环
 22. `s22-hook-system`: Hook System & BOOT.md
+23. `s23-trajectory-and-rl`: 对话轨迹与强化学习
