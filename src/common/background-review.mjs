@@ -1,5 +1,7 @@
 import { runReview } from './run-review.mjs'
 import { initDB } from './persistent.mjs'
+// s21
+import { skillReview } from './skill-creation-loop.mjs'
 
 const MEMORY_REVIEW_PROMPT = `Review the conversation above and consider saving to memory if appropriate.
 
@@ -112,6 +114,9 @@ function spawnBackgroundReview(
   } else {
     prompt = SKILL_REVIEW_PROMPT
   }
+
+  // s21
+  reviewSkills && skillReview.review([...messagesSnapshot], SKILL_REVIEW_PROMPT)
 
   // 启动后台任务并返回 Promise
   const reviewPromise = runReview(
